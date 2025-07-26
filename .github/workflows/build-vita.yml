@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make git cmake python3 zip unzip
+          sudo apt-get install -y make git cmake python3 zip unzip protobuf-compiler
 
       - name: Set up VitaSDK
         run: |
