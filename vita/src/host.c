@@ -328,11 +328,11 @@ static void *input_thread_func(void* user) {
         }
       }
 
-      // Select + Start
+      // Select + Start -- Exp remap to L + SELECT
       if (vitaki_select_start_mapped) {
-        if ((ctrl.buttons & SCE_CTRL_SELECT) && (ctrl.buttons & SCE_CTRL_START)) {
+        if ((ctrl.buttons & SCE_CTRL_SELECT) && (ctrl.buttons & SCE_CTRL_LTRIGGER)) {
           stream->controller_state.buttons &= ~CHIAKI_CONTROLLER_BUTTON_SHARE;
-          stream->controller_state.buttons &= ~CHIAKI_CONTROLLER_BUTTON_OPTIONS;
+          stream->controller_state.buttons &= ~CHIAKI_CONTROLLER_BUTTON_L1;
           stream->controller_state.buttons |= vcmi.in_out_btn[VITAKI_CTRL_IN_SELECT_START];
         }
       }
