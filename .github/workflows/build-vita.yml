@@ -1,0 +1,74 @@
+name: Build Chiaki for PS Vita
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ywnico]
+
+jobs:
+  build-vita:
+    name: Build Vitaki
+    runs-on: ubuntu-latest
+
+    env:
+      VITASDK: /usr/local/vitasdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make git cmake python3 zip unzip
+
+      - name: Set up VitaSDK
+        run: |
+          git clone https://github.com/vitasdk/vdpm
+          cd vdpm
+          ./bootstrap-vitasdk.sh
+          ./install-all.sh
+        env:
+          VITASDK: ${{ env.VITASDK }}
+
+      - name: Add VitaSDK to PATH
+        run: echo "${{ env.VITASDK }}/bin" >> $GITHUB_PATH
+
+      - name: Build Vitaki
+        run: |
+          set -veo pipefail
+
+          SCRIPTDIR=$(pwd)/scripts/vita
+          BASEDIR=$(realpath "${SCRIPTDIR}/../../")
+
+          build_chiaki (){
+            pushd "${BASEDIR}"
+
+            cmake -B "./build" \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake \
+              -DCMAKE_C_FLAGS="-g -O0" \
+              -DCHIAKI_ENABLE_VITA=ON \
+              -DCHIAKI_ENABLE_TESTS=OFF \
+              -DCHIAKI_ENABLE_CLI=OFF \
+              -DCHIAKI_ENABLE_GUI=OFF \
+              -DCHIAKI_ENABLE_ANDROID=OFF \
+              -DCHIAKI_ENABLE_SETSU=OFF \
+              -DCHIAKI_FFMPEG_DEFAULT=OFF \
+              -DCHIAKI_ENABLE_FFMPEG_DECODER=OFF \
+              -DCHIAKI_ENABLE_PI_DECODER=OFF \
+              -DCHIAKI_USE_SYSTEM_NANOPB=OFF \
+              -DCHIAKI_LIB_ENABLE_OPUS=ON
+
+            make -j$(nproc) -C "./build"
+
+            popd
+          }
+
+          build_chiaki
+        env:
+          VITASDK: ${{ env.VITASDK }}
+          PSVITAIP: ${{ env.PSVITAIP }}
+          CI: ${{ env.CI }}
